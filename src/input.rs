@@ -1,11 +1,15 @@
 use n_puzzle::*;
 use std::{
+    env,
     fs::File,
+    path::Path,
     io::{prelude::*, BufReader}
 };
 use std::num::ParseIntError;
 
-fn parse_input(file: File) -> Result<(u8, Vec<Vec<u8>>), ParseIntError> {
+fn parse_input() -> Result<(u8, Vec<Vec<u8>>), ParseIntError> {
+    let args: Vec<String> = env::args().collect();
+    let file = File::open(Path::new(&args[1])).expect("no such file");
     let buf = BufReader::new(file);
     let lines = buf.lines();
     let mut vector: Vec<Vec<u8>> = Vec::new();
@@ -23,7 +27,7 @@ fn parse_input(file: File) -> Result<(u8, Vec<Vec<u8>>), ParseIntError> {
     Ok((vector[0][0], vector[1..].to_vec()))
 }
 
-pub fn get_grid(file: File) -> Result<Grid, ParseIntError> {
-    let (size, grid) = parse_input(file)?;
+pub fn get_grid() -> Result<Grid, ParseIntError> {
+    let (size, grid) = parse_input()?;
     Ok(grid)
 }
