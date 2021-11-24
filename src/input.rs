@@ -5,11 +5,10 @@ use std::{
 };
 use std::num::ParseIntError;
 
-pub fn get_puzzle(file: File) -> Result<Grid, ParseIntError> {
+fn parse_input(file: File) -> Result<(u8, Vec<Vec<u8>>), ParseIntError> {
     let buf = BufReader::new(file);
-    let mut grid = Grid::new();
-
     let lines = buf.lines();
+    let mut vector: Vec<Vec<u8>> = Vec::new();
 
     for line in lines {
         let line = line.unwrap();
@@ -18,8 +17,13 @@ pub fn get_puzzle(file: File) -> Result<Grid, ParseIntError> {
             let result: Vec<u8> = string.split_whitespace()
                                         .map(|x| x.parse::<u8>())
                                         .collect::<Result<Vec<u8>, _>>()?;
-            grid.push(result);
+            vector.push(result);
         }
     }
+    Ok((vector[0][0], vector[1..].to_vec()))
+}
+
+pub fn get_grid(file: File) -> Result<Grid, ParseIntError> {
+    let (size, grid) = parse_input(file)?;
     Ok(grid)
 }

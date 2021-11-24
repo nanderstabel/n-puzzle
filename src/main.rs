@@ -6,7 +6,7 @@
 /*   By: nstabel <nstabel@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2021/04/22 15:48:20 by nstabel       #+#    #+#                 */
-/*   Updated: 2021/11/24 16:23:32 by nstabel       ########   odam.nl         */
+/*   Updated: 2021/11/24 17:14:24 by nstabel       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let mut test = HashMap::new();
 
 
-    let grid = input::get_puzzle(file)?;
+    let grid = input::get_grid(file)?;
     println!("{:#?}", grid);
     Ok(())
 }
