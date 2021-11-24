@@ -13,17 +13,17 @@ fn get_buffer() -> BufReader<File> {
     BufReader::new(file)
 }
 
-fn parse_input() -> Result<(u8, Vec<Vec<u8>>), ParseIntError> {
-    let mut vector: Vec<Vec<u8>> = Vec::new();
+fn parse_input() -> Result<(u8, Vec<Row>), ParseIntError> {
+    let mut vector: Vec<Row> = Vec::new();
     let lines = get_buffer().lines();
 
     for line in lines {
         let line = line.unwrap();
         if !line.starts_with('#') {
             let string: &str = line.split('#').collect::<Vec<_>>()[0];
-            let result: Vec<u8> = string.split_whitespace()
+            let result: Row = string.split_whitespace()
                                         .map(|x| x.parse::<u8>())
-                                        .collect::<Result<Vec<u8>, _>>()?;
+                                        .collect::<Result<Row, _>>()?;
             vector.push(result);
         }
     }
@@ -41,7 +41,7 @@ pub fn get_grid() -> Result<Grid, ParseIntError> {
         }
     }
     let flat: Vec<&u8> = grid.iter().flat_map(|v| v).collect();
-    let set: Vec<u8> = (0..(size * size)).collect();
+    let set: Row = (0..(size * size)).collect();
     if set.iter().all(|u| flat.contains(&u)) == false {
         "dummy".parse::<u8>()?;
     }
