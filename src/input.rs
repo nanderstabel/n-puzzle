@@ -1,11 +1,11 @@
 use n_puzzle::*;
+use std::num::ParseIntError;
 use std::{
     env,
     fs::File,
+    io::{prelude::*, BufReader},
     path::Path,
-    io::{prelude::*, BufReader}
 };
-use std::num::ParseIntError;
 
 fn get_buffer() -> BufReader<File> {
     let args: Vec<String> = env::args().collect();
@@ -20,11 +20,12 @@ fn parse_input() -> Result<(u8, Vec<Row>), ParseIntError> {
     for line in lines {
         let line = line.unwrap();
         if !line.starts_with('#') {
-            let string: &str = line.split('#').collect::<Vec<_>>()[0];
-            let result: Row = string.split_whitespace()
-                                        .map(|x| x.parse::<u8>())
-                                        .collect::<Result<Row, _>>()?;
-            vector.push(result);
+            vector.push(
+                (line.split('#').collect::<Vec<_>>()[0])
+                    .split_whitespace()
+                    .map(|x| x.parse::<u8>())
+                    .collect::<Result<Row, _>>()?,
+            );
         }
     }
     if vector[0].len() != 1 {

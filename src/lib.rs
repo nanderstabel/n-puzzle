@@ -4,15 +4,31 @@ pub type Row = Vec<u8>;
 pub type Grid = Vec<Row>;
 pub type Location = (usize, usize);
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Data {
     pub h: u16,
-    pub location: Location
+    pub current: Location,
+    pub end: Location,
 }
 
 impl Data {
-    pub fn new(h: u16, location: Location) -> Self {
-        Data { h: h, location: location }
+    pub fn new(h: u16, current: Location, end: Location) -> Self {
+        Data {
+            h: h,
+            current: current,
+            end: end,
+        }
+    }
+}
+
+impl fmt::Debug for Data {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "\th:\t\t{}\n\tcurrent:\t{:?}\n\tend:\t\t{:?}\n\n",
+            self.h, self.current, self.end
+        )?;
+        Ok(())
     }
 }
 
@@ -21,7 +37,7 @@ pub struct Node<'a> {
     pub grid: Grid,
     pub cursor: Location,
     pub h: u16,
-    pub parent: Option<&'a Node<'a>>
+    pub parent: Option<&'a Node<'a>>,
 }
 
 impl fmt::Display for Node<'_> {
@@ -30,7 +46,7 @@ impl fmt::Display for Node<'_> {
             for u in row {
                 match u {
                     0 => write!(f, "    ")?,
-                    _ => write!(f, "{:4}", u)?
+                    _ => write!(f, "{:4}", u)?,
                 }
             }
             write!(f, "\n")?;
@@ -41,5 +57,5 @@ impl fmt::Display for Node<'_> {
 
 #[derive(Debug, Default)]
 pub struct Puzzle {
-    buf: String
+    buf: String,
 }
