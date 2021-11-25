@@ -6,14 +6,16 @@ pub type Location = (usize, usize);
 
 #[derive(Clone)]
 pub struct Data {
+    pub index: u8,
     pub h: u16,
     pub current: Location,
     pub end: Location,
 }
 
 impl Data {
-    pub fn new(h: u16, current: Location, end: Location) -> Self {
+    pub fn new(index: u8, h: u16, current: Location, end: Location) -> Self {
         Data {
+            index: index,
             h: h,
             current: current,
             end: end,
@@ -25,8 +27,8 @@ impl fmt::Debug for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "\th:\t\t{}\n\tcurrent:\t{:?}\n\tend:\t\t{:?}\n\n",
-            self.h, self.current, self.end
+            "\tindex:\t\t{}\n\th:\t\t{}\n\tcurrent:\t{:?}\n\tend:\t\t{:?}\n\n",
+            self.index, self.h, self.current, self.end
         )?;
         Ok(())
     }
