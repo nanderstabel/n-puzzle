@@ -49,7 +49,6 @@ fn get_data(u: u8, y: usize, x: usize) -> Data {
 
 #[derive(Debug)]
 pub struct Puzzle {
-    pub parent: Option<Rc<Node>>,
     pub data: HashMap<u8, Data>,
     pub closed: HashMap<Grid, u16>,
     pub open: VecDeque<Node>,
@@ -58,7 +57,6 @@ pub struct Puzzle {
 impl Puzzle {
     pub fn new() -> Self {
         Puzzle {
-            parent: None,
             data: HashMap::new(),
             closed: HashMap::new(),
             open: VecDeque::new(),
@@ -78,11 +76,8 @@ impl Puzzle {
         Ok(())
     }
 
-    fn add_child(&mut self, cursor: (usize, usize), new_cursor: (usize, usize)) {
-        let new_grid: Grid = self
-            .parent
-            .as_ref()
-            .unwrap()
+    fn add_child(&mut self, parent: &Rc<Node>, cursor: (usize, usize), new_cursor: (usize, usize)) {
+        let new_grid: Grid = parent
             .grid
             .iter()
             .cloned()
@@ -96,24 +91,24 @@ impl Puzzle {
             new_cursor,
             new_h,
             1,
-            Some(Rc::clone(&self.parent.as_ref().unwrap())),
+            Some(Rc::clone(&parent)),
         ));
     }
 
     fn add_children(&mut self) {
         let cursor = (*self.data.get_mut(&0).unwrap()).current;
-        self.parent = Some(Rc::new(self.open.pop_front().unwrap()));
-        if self.parent.as_ref().unwrap().cursor.0 != 0 {
-            self.add_child(cursor, (cursor.0 - 1, cursor.1));
+        let parent = Rc::new(self.open.pop_front().unwrap());
+        if parent.cursor.0 != 0 {
+            self.add_child(&parent, cursor, (cursor.0 - 1, cursor.1));
         }
-        if self.parent.as_ref().unwrap().cursor.0 + 1 < self.parent.as_ref().unwrap().grid.len() {
-            self.add_child(cursor, (cursor.0 + 1, cursor.1));
+        if parent.cursor.0 + 1 < parent.grid.len() {
+            self.add_child(&parent, cursor, (cursor.0 + 1, cursor.1));
         }
-        if self.parent.as_ref().unwrap().cursor.1 != 0 {
-            self.add_child(cursor, (cursor.0, cursor.1 - 1));
+        if parent.cursor.1 != 0 {
+            self.add_child(&parent, cursor, (cursor.0, cursor.1 - 1));
         }
-        if self.parent.as_ref().unwrap().cursor.1 + 1 < self.parent.as_ref().unwrap().grid.len() {
-            self.add_child(cursor, (cursor.0, cursor.1 + 1));
+        if parent.cursor.1 + 1 < parent.grid.len() {
+            self.add_child(&parent, cursor, (cursor.0, cursor.1 + 1));
         }
     }
 
