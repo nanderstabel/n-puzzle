@@ -1,6 +1,6 @@
 use crate::input::*;
 use n_puzzle::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 
 use super::data::*;
@@ -51,7 +51,7 @@ fn get_data(u: u8, y: usize, x: usize) -> Data {
 pub struct Puzzle<'a> {
     pub data: HashMap<u8, Data>,
     pub closed: HashMap<Grid, u16>,
-    pub open: Vec<Node<'a>>,
+    pub open: VecDeque<Node<'a>>,
 }
 
 impl Puzzle<'_> {
@@ -59,7 +59,7 @@ impl Puzzle<'_> {
         Puzzle {
             data: HashMap::new(),
             closed: HashMap::new(),
-            open: Vec::new(),
+            open: VecDeque::new(),
         }
     }
 
@@ -72,7 +72,7 @@ impl Puzzle<'_> {
         }
         start.h = self.data.values().map(|d| d.h).sum();
         start.cursor = (*self.data.get_mut(&0).unwrap()).current;
-        self.open.push(start);
+        self.open.push_front(start);
         Ok(())
     }
 }

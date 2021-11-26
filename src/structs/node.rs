@@ -12,10 +12,10 @@ pub struct Data {
 impl Data {
     pub fn new(value: u8, h: u16, current: Location, end: Location) -> Self {
         Data {
-            value: value,
-            h: h,
-            current: current,
-            end: end,
+            value,
+            h,
+            current,
+            end,
         }
     }
 }

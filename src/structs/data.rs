@@ -13,11 +13,11 @@ pub struct Node<'a> {
 impl<'a> Node<'a> {
     pub fn new(grid: Grid, cursor: Location, h: u16, g: u16, parent: Option<&'a Node<'a>>) -> Self {
         Node {
-            grid: grid,
-            cursor: cursor,
-            h: h,
-            g: g,
-            parent: parent,
+            grid,
+            cursor,
+            h,
+            g,
+            parent,
         }
     }
 }

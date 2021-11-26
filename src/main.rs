@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut puzzle = puzzle::Puzzle::new();
     puzzle.initialize_start()?;
 
-    println!("{:?}", puzzle.open);
+    println!("{:?}", puzzle.open[0]);
 
     // let cursor = (*puzzle.data.get_mut(&0).unwrap()).current;
     // if start.cursor.0 != 0 {
