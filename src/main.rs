@@ -1,19 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   main.rs                                            :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: nstabel <nstabel@student.codam.nl>           +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2021/04/22 15:48:20 by nstabel       #+#    #+#                 */
-/*   Updated: 2021/11/25 20:11:22 by nstabel       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 mod input;
 use input::*;
 use n_puzzle::*;
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 static END: (
     [[u8; 1]; 1],
@@ -57,21 +45,19 @@ fn get_data(u: u8, y: usize, x: usize) -> Data {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // let puzzle = Puzzle::default();
-    let mut data = HashMap::new();
-    let mut start = Node::new(get_grid()?, (0, 0), 0, None);
+    let mut puzzle = Puzzle::new();
+    let mut start = Node::new(get_grid()?, (0, 0), 0, 0, None);
     for (y, row) in start.grid.iter().enumerate() {
         for (x, u) in row.iter().enumerate() {
-            data.insert(u, get_data(*u, y, x));
+            puzzle.data.insert(*u, get_data(*u, y, x));
         }
     }
-    start.h = data.values().map(|d| d.h).sum();
-    start.cursor = (*data.get_mut(&0).unwrap()).current;
+    start.h = puzzle.data.values().map(|d| d.h).sum();
+    start.cursor = (*puzzle.data.get_mut(&0).unwrap()).current;
 
     println!("{:?}", start);
-    // println!("{:?}", data);
 
-    let cursor = (*data.get_mut(&0).unwrap()).current;
+    let cursor = (*puzzle.data.get_mut(&0).unwrap()).current;
     if start.cursor.0 != 0 {
         let new_cursor = (cursor.0 - 1, cursor.1);
 
@@ -83,14 +69,35 @@ fn main() -> Result<(), Box<dyn Error>> {
             .swap(cursor, new_cursor);
 
         let target = new_grid[cursor.0][cursor.1];
-        let meta = &(*data.get_mut(&target).unwrap());
+        let meta = &(*puzzle.data.get_mut(&target).unwrap());
 
         let new_h = manhattan(cursor, meta.end);
 
-        let child = Node::new(new_grid, new_cursor, new_h, None);
+        let child_up = Node::new(new_grid, new_cursor, new_h, 1, Some(&start));
 
-        println!("{:?}", child);
-        println!("{:?}\tnew: {}\n\n", meta, new_h as i16 - meta.h as i16);
+        println!("{:?}", child_up);
+        println!("{:?}\n\nnew: {}\n\n", meta, new_h as i16 - meta.h as i16);
+    }
+
+    if start.cursor.0 + 1 < start.grid.len() {
+        let new_cursor = (cursor.0 + 1, cursor.1);
+
+        let new_grid: Grid = start
+            .grid
+            .iter()
+            .cloned()
+            .collect::<Grid>()
+            .swap(cursor, new_cursor);
+
+        let target = new_grid[cursor.0][cursor.1];
+        let meta = &(*puzzle.data.get_mut(&target).unwrap());
+
+        let new_h = manhattan(cursor, meta.end);
+
+        let child_down = Node::new(new_grid, new_cursor, new_h, 1, Some(&start));
+
+        println!("{:?}", child_down);
+        println!("{:?}\n\nnew: {}\n\n", meta, new_h as i16 - meta.h as i16);
     }
 
     // if start.cursor.0 + 1 < start.grid.len() {
