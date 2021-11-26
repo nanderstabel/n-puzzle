@@ -4,6 +4,7 @@ use crate::input::*;
 use n_puzzle::*;
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
+use std::rc::Rc;
 
 static END: (
     [[u8; 1]; 1],
@@ -47,15 +48,17 @@ fn get_data(u: u8, y: usize, x: usize) -> Data {
 }
 
 #[derive(Debug)]
-pub struct Puzzle<'a> {
+pub struct Puzzle {
+    pub parent: Option<Rc<Node>>,
     pub data: HashMap<u8, Data>,
     pub closed: HashMap<Grid, u16>,
-    pub open: VecDeque<Node<'a>>,
+    pub open: VecDeque<Node>,
 }
 
-impl Puzzle<'_> {
+impl Puzzle {
     pub fn new() -> Self {
         Puzzle {
+            parent: None,
             data: HashMap::new(),
             closed: HashMap::new(),
             open: VecDeque::new(),
@@ -76,7 +79,10 @@ impl Puzzle<'_> {
     }
 
     fn add_child(&mut self, cursor: (usize, usize), new_cursor: (usize, usize)) {
-        let new_grid: Grid = self.open[0]
+        let new_grid: Grid = self
+            .parent
+            .as_ref()
+            .unwrap()
             .grid
             .iter()
             .cloned()
@@ -86,22 +92,27 @@ impl Puzzle<'_> {
         let meta = &(*self.data.get_mut(&target).unwrap());
         let new_h = manhattan(cursor, meta.end);
         self.open.push_back(Node::new(
-            new_grid, new_cursor, new_h, 1, None, // Some(&self.open[0]),
+            new_grid,
+            new_cursor,
+            new_h,
+            1,
+            Some(Rc::clone(&self.parent.as_ref().unwrap())),
         ));
     }
 
     fn add_children(&mut self) {
         let cursor = (*self.data.get_mut(&0).unwrap()).current;
-        if self.open[0].cursor.0 != 0 {
+        self.parent = Some(Rc::new(self.open.pop_front().unwrap()));
+        if self.parent.as_ref().unwrap().cursor.0 != 0 {
             self.add_child(cursor, (cursor.0 - 1, cursor.1));
         }
-        if self.open[0].cursor.0 + 1 < self.open[0].grid.len() {
+        if self.parent.as_ref().unwrap().cursor.0 + 1 < self.parent.as_ref().unwrap().grid.len() {
             self.add_child(cursor, (cursor.0 + 1, cursor.1));
         }
-        if self.open[0].cursor.1 != 0 {
+        if self.parent.as_ref().unwrap().cursor.1 != 0 {
             self.add_child(cursor, (cursor.0, cursor.1 - 1));
         }
-        if self.open[0].cursor.1 + 1 < self.open[0].grid.len() {
+        if self.parent.as_ref().unwrap().cursor.1 + 1 < self.parent.as_ref().unwrap().grid.len() {
             self.add_child(cursor, (cursor.0, cursor.1 + 1));
         }
     }

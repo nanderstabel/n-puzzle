@@ -1,17 +1,18 @@
 use n_puzzle::*;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Clone)]
-pub struct Node<'a> {
+pub struct Node {
     pub grid: Grid,
     pub cursor: Location,
     pub h: u16,
     pub g: u16,
-    pub parent: Option<&'a Node<'a>>,
+    pub parent: Option<Rc<Node>>,
 }
 
-impl<'a> Node<'a> {
-    pub fn new(grid: Grid, cursor: Location, h: u16, g: u16, parent: Option<&'a Node<'a>>) -> Self {
+impl Node {
+    pub fn new(grid: Grid, cursor: Location, h: u16, g: u16, parent: Option<Rc<Node>>) -> Self {
         Node {
             grid,
             cursor,
@@ -22,7 +23,7 @@ impl<'a> Node<'a> {
     }
 }
 
-impl fmt::Display for Node<'_> {
+impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in &self.grid {
             for u in row {
@@ -37,7 +38,7 @@ impl fmt::Display for Node<'_> {
     }
 }
 
-impl fmt::Debug for Node<'_> {
+impl fmt::Debug for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "     h:\t{}\n", self.h)?;
         write!(f, "     g:\t{}\n", self.g)?;
