@@ -1,10 +1,9 @@
+use super::data::*;
+use super::node::*;
 use crate::input::*;
 use n_puzzle::*;
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
-
-use super::data::*;
-use super::node::*;
 
 static END: (
     [[u8; 1]; 1],
@@ -74,5 +73,40 @@ impl Puzzle<'_> {
         start.cursor = (*self.data.get_mut(&0).unwrap()).current;
         self.open.push_front(start);
         Ok(())
+    }
+
+    fn add_child(&mut self, cursor: (usize, usize), new_cursor: (usize, usize)) {
+        let new_grid: Grid = self.open[0]
+            .grid
+            .iter()
+            .cloned()
+            .collect::<Grid>()
+            .swap(cursor, new_cursor);
+        let target = new_grid[cursor.0][cursor.1];
+        let meta = &(*self.data.get_mut(&target).unwrap());
+        let new_h = manhattan(cursor, meta.end);
+        self.open.push_back(Node::new(
+            new_grid, new_cursor, new_h, 1, None, //Some(&self.open[0]),
+        ));
+    }
+
+    fn add_children(&mut self) {
+        let cursor = (*self.data.get_mut(&0).unwrap()).current;
+        if self.open[0].cursor.0 != 0 {
+            self.add_child(cursor, (cursor.0 - 1, cursor.1));
+        }
+        if self.open[0].cursor.0 + 1 < self.open[0].grid.len() {
+            self.add_child(cursor, (cursor.0 + 1, cursor.1));
+        }
+        if self.open[0].cursor.1 != 0 {
+            self.add_child(cursor, (cursor.0, cursor.1 - 1));
+        }
+        if self.open[0].cursor.1 + 1 < self.open[0].grid.len() {
+            self.add_child(cursor, (cursor.0, cursor.1 + 1));
+        }
+    }
+
+    pub fn solve(&mut self) {
+        self.add_children();
     }
 }
