@@ -86,7 +86,7 @@ impl Puzzle<'_> {
         let meta = &(*self.data.get_mut(&target).unwrap());
         let new_h = manhattan(cursor, meta.end);
         self.open.push_back(Node::new(
-            new_grid, new_cursor, new_h, 1, None, //Some(&self.open[0]),
+            new_grid, new_cursor, new_h, 1, None, // Some(&self.open[0]),
         ));
     }
 
