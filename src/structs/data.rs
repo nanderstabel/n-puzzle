@@ -2,46 +2,31 @@ use n_puzzle::*;
 use std::fmt;
 
 #[derive(Clone)]
-pub struct Node<'a> {
-    pub grid: Grid,
-    pub cursor: Location,
+pub struct Data {
+    pub value: u8,
     pub h: u16,
-    pub g: u16,
-    pub parent: Option<&'a Node<'a>>,
+    pub current: Location,
+    pub end: Location,
 }
 
-impl<'a> Node<'a> {
-    pub fn new(grid: Grid, cursor: Location, h: u16, g: u16, parent: Option<&'a Node<'a>>) -> Self {
-        Node {
-            grid,
-            cursor,
+impl Data {
+    pub fn new(value: u8, h: u16, current: Location, end: Location) -> Self {
+        Data {
+            value,
             h,
-            g,
-            parent,
+            current,
+            end,
         }
     }
 }
 
-impl fmt::Display for Node<'_> {
+impl fmt::Debug for Data {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for row in &self.grid {
-            for u in row {
-                match u {
-                    0 => write!(f, "    ")?,
-                    _ => write!(f, "{:4}", u)?,
-                }
-            }
-            write!(f, "\n")?;
-        }
+        write!(
+            f,
+            "value:\t\t{}\nh:\t\t{}\ncurrent:\t{:?}\nend:\t\t{:?}",
+            self.value, self.h, self.current, self.end
+        )?;
         Ok(())
-    }
-}
-
-impl fmt::Debug for Node<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "     h:\t{}\n", self.h)?;
-        write!(f, "     g:\t{}\n", self.g)?;
-        write!(f, "cursor:\t{:?}\n", self.cursor)?;
-        write!(f, "{}", self)
     }
 }
