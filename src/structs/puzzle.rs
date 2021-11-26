@@ -2,7 +2,7 @@ use super::data::*;
 use super::node::*;
 use crate::input::*;
 use n_puzzle::*;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::error::Error;
 use std::rc::Rc;
 
@@ -12,6 +12,7 @@ static END: (
     [[u8; 3]; 3],
     [[u8; 4]; 4],
     [[u8; 5]; 5],
+    [[u8; 6]; 6],
 ) = (
     [[0]],
     [[1, 2], [0, 3]],
@@ -23,6 +24,14 @@ static END: (
         [15, 24, 0, 20, 7],
         [14, 23, 22, 21, 8],
         [13, 12, 11, 10, 9],
+    ],
+    [
+        [1, 2, 3, 4, 5, 6],
+        [20, 21, 22, 23, 24, 7],
+        [19, 32, 33, 34, 25, 8],
+        [18, 31, 0, 35, 26, 9],
+        [17, 30, 29, 28, 27, 10],
+        [16, 15, 14, 13, 12, 11],
     ],
 );
 
@@ -50,7 +59,7 @@ fn get_data(u: u8, y: usize, x: usize) -> Data {
 #[derive(Debug)]
 pub struct Puzzle {
     pub data: HashMap<u8, Data>,
-    pub closed: HashMap<Grid, u16>,
+    pub closed: HashSet<Grid>,
     pub open: VecDeque<Node>,
 }
 
@@ -58,7 +67,7 @@ impl Puzzle {
     pub fn new() -> Self {
         Puzzle {
             data: HashMap::new(),
-            closed: HashMap::new(),
+            closed: HashSet::new(),
             open: VecDeque::new(),
         }
     }
@@ -83,21 +92,24 @@ impl Puzzle {
             .cloned()
             .collect::<Grid>()
             .swap(cursor, new_cursor);
-        let target = new_grid[cursor.0][cursor.1];
-        let meta = &(*self.data.get_mut(&target).unwrap());
-        let new_h = manhattan(cursor, meta.end);
-        self.open.push_back(Node::new(
-            new_grid,
-            new_cursor,
-            new_h,
-            1,
-            Some(Rc::clone(&parent)),
-        ));
+        if self.closed.contains(&new_grid) == false {
+            let target = new_grid[cursor.0][cursor.1];
+            let meta = &(*self.data.get_mut(&target).unwrap());
+            let new_h = manhattan(cursor, meta.end) as i16 - manhattan(new_cursor, meta.end) as i16;
+            self.open.push_back(Node::new(
+                new_grid,
+                new_cursor,
+                (parent.h as i16 + new_h) as u16,
+                parent.g + 1,
+                Some(Rc::clone(&parent)),
+            ));
+        }
     }
 
     fn add_children(&mut self) {
-        let cursor = (*self.data.get_mut(&0).unwrap()).current;
         let parent = Rc::new(self.open.pop_front().unwrap());
+        let cursor = parent.cursor;
+        self.closed.insert(parent.grid.iter().cloned().collect());
         if parent.cursor.0 != 0 {
             self.add_child(&parent, cursor, (cursor.0 - 1, cursor.1));
         }
@@ -113,6 +125,12 @@ impl Puzzle {
     }
 
     pub fn solve(&mut self) {
-        self.add_children();
+        while self.open[0].h != 0 {
+            self.add_children();
+            self.open
+                .make_contiguous()
+                // .sort_by(|a, b| (a.h + a.g).cmp(&(b.h + b.g)));
+                .sort_by(|a, b| (a.h).cmp(&(b.h)));
+        }
     }
 }
