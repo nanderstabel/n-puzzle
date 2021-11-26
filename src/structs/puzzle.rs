@@ -2,9 +2,11 @@ use super::data::*;
 use super::node::*;
 use crate::input::*;
 use n_puzzle::*;
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::error::Error;
-use std::rc::Rc;
+use std::{
+    collections::{HashMap, HashSet, VecDeque},
+    error::Error,
+    rc::Rc,
+};
 
 static END: (
     [[u8; 1]; 1],
@@ -40,22 +42,6 @@ fn manhattan(a: (usize, usize), b: (usize, usize)) -> u16 {
         as u16
 }
 
-fn get_data(u: u8, y: usize, x: usize) -> Data {
-    for (j, row) in END.3.iter().enumerate() {
-        for (i, v) in row.iter().enumerate() {
-            if u == *v {
-                return Data::new(
-                    u,
-                    if u != 0 { manhattan((y, x), (j, i)) } else { 0 },
-                    (y, x),
-                    (j, i),
-                );
-            }
-        }
-    }
-    Data::new(0, 0, (y, x), (y, x))
-}
-
 #[derive(Debug)]
 pub struct Puzzle {
     pub data: HashMap<u8, Data>,
@@ -72,11 +58,26 @@ impl Puzzle {
         }
     }
 
+    fn get_data(u: u8, y: usize, x: usize) -> Data {
+        for (j, row) in END.4.iter().enumerate() {
+            for (i, v) in row.iter().enumerate() {
+                if u == *v {
+                    return Data::new(
+                        if u != 0 { manhattan((y, x), (j, i)) } else { 0 },
+                        (y, x),
+                        (j, i),
+                    );
+                }
+            }
+        }
+        Data::new(0, (y, x), (y, x))
+    }
+
     pub fn initialize_start(&mut self) -> Result<(), Box<dyn Error>> {
         let mut start = Node::new(get_grid()?, (0, 0), 0, 0, None);
         for (y, row) in start.grid.iter().enumerate() {
             for (x, u) in row.iter().enumerate() {
-                self.data.insert(*u, get_data(*u, y, x));
+                self.data.insert(*u, Puzzle::get_data(*u, y, x));
             }
         }
         start.h = self.data.values().map(|d| d.h).sum();
