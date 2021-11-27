@@ -11,21 +11,21 @@ fn get_end_state(size: u8) -> Grid {
     let (mut top, mut bottom, mut left, mut right) = (0, (size - 1).into(), 0, (size - 1).into());
 
     macro_rules! fill {
-        ($range:expr, $level:ident, "hor") => {{
+        ($range:expr, $level:ident, $direction:literal) => {{
             if set.is_empty() {
                 break;
             }
-            for i in $range {
-                grid[$level][i] = set.pop().unwrap();
-            }
-            1
-        }};
-        ($range:expr, $level:ident, "ver") => {{
-            if set.is_empty() {
-                break;
-            }
-            for i in $range {
-                grid[i][$level] = set.pop().unwrap();
+            match $direction {
+                "hor" => {
+                    for i in $range {
+                        grid[$level][i] = set.pop().unwrap();
+                    }
+                }
+                _ => {
+                    for j in $range {
+                        grid[j][$level] = set.pop().unwrap();
+                    }
+                }
             }
             1
         }};
