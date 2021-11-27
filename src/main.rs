@@ -11,7 +11,7 @@ fn get_end_state(size: u8) -> Grid {
     let (mut top, mut bottom, mut left, mut right) = (0, (size - 1).into(), 0, (size - 1).into());
 
     macro_rules! fill {
-        ($range:expr, $level:ident) => {{
+        ($range:expr, $level:ident, "hor") => {{
             if set.is_empty() {
                 break;
             }
@@ -20,28 +20,22 @@ fn get_end_state(size: u8) -> Grid {
             }
             1
         }};
+        ($range:expr, $level:ident, "ver") => {{
+            if set.is_empty() {
+                break;
+            }
+            for i in $range {
+                grid[i][$level] = set.pop().unwrap();
+            }
+            1
+        }};
     }
 
     loop {
-        top += fill!(left..=right, top);
-
-        if set.is_empty() {
-            break;
-        }
-        for i in top..=bottom {
-            grid[i][right] = set.pop().unwrap();
-        }
-        right -= 1;
-
-        bottom -= fill!((left..=right).rev(), bottom);
-
-        if set.is_empty() {
-            break;
-        }
-        for i in (top..=bottom).rev() {
-            grid[i][left] = set.pop().unwrap();
-        }
-        left += 1;
+        top += fill!(left..=right, top, "hor");
+        right -= fill!(top..=bottom, right, "ver");
+        bottom -= fill!((left..=right).rev(), bottom, "hor");
+        left += fill!((top..=bottom).rev(), left, "ver");
     }
 
     println!("{:?}\n\n\n", grid);
