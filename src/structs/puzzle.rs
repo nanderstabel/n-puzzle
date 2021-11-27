@@ -8,12 +8,10 @@ use std::{
     rc::Rc,
 };
 
-fn manhattan(a: (usize, usize), b: (usize, usize)) -> u16 {
-    (if a.0 > b.0 { a.0 - b.0 } else { b.0 - a.0 } + if a.1 > b.1 { a.1 - b.1 } else { b.1 - a.1 })
-        as u16
+fn manhattan((cy, cx): (usize, usize), (ey, ex): (usize, usize)) -> u16 {
+    (if cy > ey { cy - ey } else { ey - cy } + if cx > ex { cx - ex } else { ex - cx }) as u16
 }
 
-#[derive(Debug)]
 pub struct Puzzle {
     pub data: HashMap<u8, Data>,
     pub closed: HashSet<Grid>,
@@ -37,16 +35,16 @@ impl Puzzle {
         macro_rules! fill {
             ($range:expr, $level:ident, $direction:literal, $increment:literal) => {
                 for index in $range {
-                    match $direction {
-                        "hor" => self.data.insert(
-                            set.pop().unwrap(),
-                            Data::new((0, 0), ($level as usize, index as usize)),
+                    self.data.insert(
+                        set.pop().unwrap(),
+                        Data::new(
+                            (0, 0),
+                            match $direction {
+                                "hor" => ($level as usize, index as usize),
+                                _ => (index as usize, $level as usize),
+                            },
                         ),
-                        _ => self.data.insert(
-                            set.pop().unwrap(),
-                            Data::new((0, 0), (index as usize, $level as usize)),
-                        ),
-                    };
+                    );
                 }
                 $level += $increment;
             };
@@ -62,23 +60,27 @@ impl Puzzle {
 
     pub fn initialize(&mut self) -> Result<(), Box<dyn Error>> {
         let (size, grid) = get_grid()?;
-        let mut start = Node::new(grid, (0, 0), 0, 0, None);
+        let mut cursor = (0, 0);
         self.get_end_state(size);
-        for (y, row) in start.grid.iter().enumerate() {
+        for (y, row) in grid.iter().enumerate() {
             for (x, u) in row.iter().enumerate() {
                 if *u != 0 {
                     self.data.get_mut(u).unwrap().current = (y, x);
                 } else {
-                    start.cursor = (y, x);
+                    cursor = (y, x);
                 }
             }
         }
-        start.h = self
-            .data
-            .values()
-            .map(|d| manhattan(d.current, d.end))
-            .sum();
-        self.open.push_front(start);
+        self.open.push_front(Node::new(
+            grid,
+            cursor,
+            self.data
+                .values()
+                .map(|d| manhattan(d.current, d.end))
+                .sum(),
+            0,
+            None,
+        ));
         Ok(())
     }
 
