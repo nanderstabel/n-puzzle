@@ -8,35 +8,6 @@ use std::{
     rc::Rc,
 };
 
-static END: (
-    [[u8; 1]; 1],
-    [[u8; 2]; 2],
-    [[u8; 3]; 3],
-    [[u8; 4]; 4],
-    [[u8; 5]; 5],
-    [[u8; 6]; 6],
-) = (
-    [[0]],
-    [[1, 2], [0, 3]],
-    [[1, 2, 3], [8, 0, 4], [7, 6, 5]],
-    [[1, 2, 3, 4], [12, 13, 14, 5], [11, 0, 15, 6], [10, 9, 8, 7]],
-    [
-        [1, 2, 3, 4, 5],
-        [16, 17, 18, 19, 6],
-        [15, 24, 0, 20, 7],
-        [14, 23, 22, 21, 8],
-        [13, 12, 11, 10, 9],
-    ],
-    [
-        [1, 2, 3, 4, 5, 6],
-        [20, 21, 22, 23, 24, 7],
-        [19, 32, 33, 34, 25, 8],
-        [18, 31, 0, 35, 26, 9],
-        [17, 30, 29, 28, 27, 10],
-        [16, 15, 14, 13, 12, 11],
-    ],
-);
-
 fn manhattan(a: (usize, usize), b: (usize, usize)) -> u16 {
     (if a.0 > b.0 { a.0 - b.0 } else { b.0 - a.0 } + if a.1 > b.1 { a.1 - b.1 } else { b.1 - a.1 })
         as u16
@@ -58,8 +29,35 @@ impl Puzzle {
         }
     }
 
-    fn get_data(u: u8, y: usize, x: usize) -> Data {
-        for (j, row) in END.4.iter().enumerate() {
+    fn get_end_state(size: u8) -> Grid {
+        let mut grid: Grid = vec![vec![0; size.into()]; size.into()];
+        let mut set: Vec<u8> = (1..(size.pow(2))).rev().collect();
+        let (mut top, mut bottom, mut left, mut right): (isize, isize, isize, isize) =
+            (0, (size - 1).into(), 0, (size - 1).into());
+
+        macro_rules! fill {
+            ($range:expr, $level:ident, $direction:literal, $increment:literal) => {
+                for index in $range {
+                    match $direction {
+                        "hor" => grid[$level as usize][index as usize] = set.pop().unwrap(),
+                        _ => grid[index as usize][$level as usize] = set.pop().unwrap(),
+                    }
+                }
+                $level += $increment;
+            };
+        }
+
+        while !set.is_empty() {
+            fill!(left..=right, top, "hor", 1);
+            fill!(top..=bottom, right, "ver", -1);
+            fill!((left..=right).rev(), bottom, "hor", -1);
+            fill!((top..=bottom).rev(), left, "ver", 1);
+        }
+        grid
+    }
+
+    fn get_data(u: u8, y: usize, x: usize, size: u8) -> Data {
+        for (j, row) in Self::get_end_state(size).iter().enumerate() {
             for (i, v) in row.iter().enumerate() {
                 if u == *v {
                     return Data::new(
@@ -78,7 +76,7 @@ impl Puzzle {
         let mut start = Node::new(grid, (0, 0), 0, 0, None);
         for (y, row) in start.grid.iter().enumerate() {
             for (x, u) in row.iter().enumerate() {
-                self.data.insert(*u, Self::get_data(*u, y, x));
+                self.data.insert(*u, Self::get_data(*u, y, x, size));
             }
         }
         start.h = self.data.values().map(|d| d.h).sum();
