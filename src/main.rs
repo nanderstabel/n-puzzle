@@ -8,34 +8,29 @@ use structs::*;
 fn get_end_state(size: u8) -> Grid {
     let mut grid: Grid = vec![vec![0; size.into()]; size.into()];
     let mut set: Vec<u8> = (1..(size.pow(2))).rev().collect();
-    let (mut top, mut bottom, mut left, mut right) = (0, (size - 1).into(), 0, (size - 1).into());
+    let (mut top, mut bottom, mut left, mut right): (isize, isize, isize, isize) =
+        (0, (size - 1).into(), 0, (size - 1).into());
 
     macro_rules! fill {
-        ($range:expr, $level:ident, $direction:literal) => {{
+        ($range:expr, $level:ident, $direction:literal, $increment:literal) => {
             if set.is_empty() {
                 break;
             }
-            match $direction {
-                "hor" => {
-                    for i in $range {
-                        grid[$level][i] = set.pop().unwrap();
-                    }
-                }
-                _ => {
-                    for j in $range {
-                        grid[j][$level] = set.pop().unwrap();
-                    }
+            for index in $range {
+                match $direction {
+                    "hor" => grid[$level as usize][index as usize] = set.pop().unwrap(),
+                    _ => grid[index as usize][$level as usize] = set.pop().unwrap(),
                 }
             }
-            1
-        }};
+            $level += $increment;
+        };
     }
 
     loop {
-        top += fill!(left..=right, top, "hor");
-        right -= fill!(top..=bottom, right, "ver");
-        bottom -= fill!((left..=right).rev(), bottom, "hor");
-        left += fill!((top..=bottom).rev(), left, "ver");
+        fill!(left..=right, top, "hor", 1);
+        fill!(top..=bottom, right, "ver", -1);
+        fill!((left..=right).rev(), bottom, "hor", -1);
+        fill!((top..=bottom).rev(), left, "ver", 1);
     }
 
     println!("{:?}\n\n\n", grid);
