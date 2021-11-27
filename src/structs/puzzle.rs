@@ -29,8 +29,7 @@ impl Puzzle {
         }
     }
 
-    fn get_end_state(size: u8) -> Grid {
-        let mut grid: Grid = vec![vec![0; size.into()]; size.into()];
+    fn get_end_state(&mut self, size: u8) {
         let mut set: Vec<u8> = (1..(size.pow(2))).rev().collect();
         let (mut top, mut bottom, mut left, mut right): (isize, isize, isize, isize) =
             (0, (size - 1).into(), 0, (size - 1).into());
@@ -39,9 +38,15 @@ impl Puzzle {
             ($range:expr, $level:ident, $direction:literal, $increment:literal) => {
                 for index in $range {
                     match $direction {
-                        "hor" => grid[$level as usize][index as usize] = set.pop().unwrap(),
-                        _ => grid[index as usize][$level as usize] = set.pop().unwrap(),
-                    }
+                        "hor" => self.data.insert(
+                            set.pop().unwrap(),
+                            Data::new((0, 0), ($level as usize, index as usize)),
+                        ),
+                        _ => self.data.insert(
+                            set.pop().unwrap(),
+                            Data::new((0, 0), (index as usize, $level as usize)),
+                        ),
+                    };
                 }
                 $level += $increment;
             };
@@ -53,34 +58,26 @@ impl Puzzle {
             fill!((left..=right).rev(), bottom, "hor", -1);
             fill!((top..=bottom).rev(), left, "ver", 1);
         }
-        grid
-    }
-
-    fn get_data(u: u8, y: usize, x: usize, size: u8) -> Data {
-        for (j, row) in Self::get_end_state(size).iter().enumerate() {
-            for (i, v) in row.iter().enumerate() {
-                if u == *v {
-                    return Data::new(
-                        if u != 0 { manhattan((y, x), (j, i)) } else { 0 },
-                        (y, x),
-                        (j, i),
-                    );
-                }
-            }
-        }
-        Data::new(0, (y, x), (y, x))
     }
 
     pub fn initialize(&mut self) -> Result<(), Box<dyn Error>> {
         let (size, grid) = get_grid()?;
         let mut start = Node::new(grid, (0, 0), 0, 0, None);
+        self.get_end_state(size);
         for (y, row) in start.grid.iter().enumerate() {
             for (x, u) in row.iter().enumerate() {
-                self.data.insert(*u, Self::get_data(*u, y, x, size));
+                if *u != 0 {
+                    self.data.get_mut(u).unwrap().current = (y, x);
+                } else {
+                    start.cursor = (y, x);
+                }
             }
         }
-        start.h = self.data.values().map(|d| d.h).sum();
-        start.cursor = (*self.data.get_mut(&0).unwrap()).current;
+        start.h = self
+            .data
+            .values()
+            .map(|d| manhattan(d.current, d.end))
+            .sum();
         self.open.push_front(start);
         Ok(())
     }
