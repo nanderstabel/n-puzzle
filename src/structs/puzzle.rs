@@ -73,11 +73,12 @@ impl Puzzle {
         Data::new(0, (y, x), (y, x))
     }
 
-    pub fn initialize_start(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut start = Node::new(get_grid()?, (0, 0), 0, 0, None);
+    pub fn initialize(&mut self) -> Result<(), Box<dyn Error>> {
+        let (size, grid) = get_grid()?;
+        let mut start = Node::new(grid, (0, 0), 0, 0, None);
         for (y, row) in start.grid.iter().enumerate() {
             for (x, u) in row.iter().enumerate() {
-                self.data.insert(*u, Puzzle::get_data(*u, y, x));
+                self.data.insert(*u, Self::get_data(*u, y, x));
             }
         }
         start.h = self.data.values().map(|d| d.h).sum();

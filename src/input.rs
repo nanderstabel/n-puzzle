@@ -34,7 +34,7 @@ fn parse_input() -> Result<(u8, Vec<Row>), ParseIntError> {
     Ok((vector[0][0], vector[1..].to_vec()))
 }
 
-pub fn get_grid() -> Result<Grid, ParseIntError> {
+pub fn get_grid() -> Result<(u8, Grid), ParseIntError> {
     let (size, grid) = parse_input()?;
     for row in &grid {
         if row.len() != size.into() {
@@ -49,5 +49,5 @@ pub fn get_grid() -> Result<Grid, ParseIntError> {
     if flat.len() != set.len() {
         "dummy".parse::<u8>()?;
     }
-    Ok(grid)
+    Ok((size, grid))
 }

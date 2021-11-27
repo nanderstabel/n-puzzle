@@ -1,20 +1,63 @@
 mod input;
 mod structs;
 
+use n_puzzle::*;
 use std::error::Error;
 use structs::*;
 
-fn get_end_state() -> Grid {
-    let end_state = Grid::new();
+fn get_end_state(size: u8) -> Grid {
+    let mut grid: Grid = vec![vec![0; size.into()]; size.into()];
+    let mut set: Vec<u8> = (1..(size.pow(2))).rev().collect();
+    let (mut top, mut bottom, mut left, mut right) = (0, (size - 1).into(), 0, (size - 1).into());
+
+    macro_rules! fill {
+        ($range:expr, $level:ident) => {{
+            if set.is_empty() {
+                break;
+            }
+            for i in $range {
+                grid[$level][i] = set.pop().unwrap();
+            }
+            1
+        }};
+    }
+
+    loop {
+        top += fill!(left..=right, top);
+
+        if set.is_empty() {
+            break;
+        }
+        for i in top..=bottom {
+            grid[i][right] = set.pop().unwrap();
+        }
+        right -= 1;
+
+        bottom -= fill!((left..=right).rev(), bottom);
+
+        if set.is_empty() {
+            break;
+        }
+        for i in (top..=bottom).rev() {
+            grid[i][left] = set.pop().unwrap();
+        }
+        left += 1;
+    }
+
+    println!("{:?}\n\n\n", grid);
+    grid
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut puzzle = puzzle::Puzzle::new();
-    puzzle.initialize_start()?;
 
-    println!("{:?}", puzzle.open[0]);
-    puzzle.solve();
+    get_end_state(5);
 
-    println!("{:?}", puzzle.open[0]);
+    // puzzle.initialize()?;
+
+    // println!("{:?}", puzzle.open[0]);
+    // puzzle.solve();
+
+    // println!("{:?}", puzzle.open[0]);
     Ok(())
 }
