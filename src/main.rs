@@ -12,5 +12,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     puzzle.initialize()?;
     puzzle.solve();
     println!("{}", puzzle);
+    println!("{:?}", puzzle.fringe_db);
     Ok(())
 }
