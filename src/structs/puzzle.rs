@@ -12,14 +12,16 @@ use std::{
 pub struct Puzzle {
     pub time_complexity: u64,
     pub size_complexity: u64,
-    pub heuristic: fn((usize, usize), (usize, usize)) -> u16,
+    pub heuristic: fn((usize, usize), (usize, usize), Grid) -> u16,
     pub data: HashMap<u8, Data>,
     pub closed: HashSet<Grid>,
     pub open: VecDeque<Node>,
 }
 
+fn linear(grid: Grid, (y, x): Location) {}
+
 impl Puzzle {
-    pub fn new(heuristic: fn((usize, usize), (usize, usize)) -> u16) -> Self {
+    pub fn new(heuristic: fn((usize, usize), (usize, usize), Grid) -> u16) -> Self {
         Puzzle {
             time_complexity: 1,
             size_complexity: 1,
@@ -78,11 +80,11 @@ impl Puzzle {
             }
         }
         self.open.push_front(Node::new(
-            grid,
+            grid.clone(),
             cursor,
             self.data
                 .values()
-                .map(|d| (self.heuristic)(d.current, d.end))
+                .map(|d| (self.heuristic)(d.current, d.end, grid.clone()))
                 .sum(),
             0,
             None,
@@ -97,9 +99,10 @@ impl Puzzle {
             let target = new_grid[parent.cursor.0][parent.cursor.1];
             let end = (*self.data.get_mut(&target).unwrap()).end;
             self.open.push_back(Node::new(
-                new_grid,
+                new_grid.clone(),
                 new_cursor,
-                parent.h + (self.heuristic)(parent.cursor, end) - (self.heuristic)(new_cursor, end),
+                parent.h + (self.heuristic)(parent.cursor, end, new_grid.clone())
+                    - (self.heuristic)(new_cursor, end, new_grid),
                 parent.g + 1,
                 Some(Rc::clone(&parent)),
             ));
