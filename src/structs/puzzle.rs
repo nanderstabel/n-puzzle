@@ -14,6 +14,8 @@ fn manhattan((cy, cx): (usize, usize), (ey, ex): (usize, usize)) -> u16 {
 }
 
 pub struct Puzzle {
+    pub time_complexity: u64,
+    pub size_complexity: u64,
     pub data: HashMap<u8, Data>,
     pub closed: HashSet<Grid>,
     pub open: VecDeque<Node>,
@@ -22,6 +24,8 @@ pub struct Puzzle {
 impl Puzzle {
     pub fn new() -> Self {
         Puzzle {
+            time_complexity: 1,
+            size_complexity: 1,
             data: HashMap::new(),
             closed: HashSet::new(),
             open: VecDeque::new(),
@@ -35,6 +39,9 @@ impl Puzzle {
 
         macro_rules! fill {
             ($range:expr, $level:ident, $direction:literal, $increment:literal) => {
+                if set.is_empty() {
+                    break;
+                }
                 for index in $range {
                     self.data.insert(
                         set.pop().unwrap(),
@@ -51,7 +58,7 @@ impl Puzzle {
             };
         }
 
-        while !set.is_empty() {
+        loop {
             fill!(left..=right, top, "hor", 1);
             fill!(top..=bottom, right, "ver", -1);
             fill!((left..=right).rev(), bottom, "hor", -1);
@@ -98,6 +105,8 @@ impl Puzzle {
                 parent.g + 1,
                 Some(Rc::clone(&parent)),
             ));
+            self.time_complexity += 1;
+            self.size_complexity += 1;
         }
     }
 
@@ -131,7 +140,7 @@ impl Puzzle {
 }
 
 impl fmt::Display for Puzzle {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         struct Traverse<'a> {
             r: &'a dyn Fn(&Traverse, &Node),
         }
@@ -140,11 +149,15 @@ impl fmt::Display for Puzzle {
                 if let Some(parent) = &node.parent {
                     (traverse.r)(&traverse, parent);
                 }
-                println!("{:?}", node);
+                println!("{}", node);
             },
         };
         let node = &self.open[0];
         (traverse.r)(&traverse, node);
+        write!(f, "Results\n{:_^24}\n\n", "")?;
+        write!(f, "{:>16}{:>8}\n", "Time complexity:", self.time_complexity)?;
+        write!(f, "{:>16}{:>8}\n", "Size complexity:", self.size_complexity)?;
+        write!(f, "{:>16}{:>8}\n", "Total moves:", node.g)?;
         Ok(())
     }
 }

@@ -29,7 +29,7 @@ impl fmt::Display for Node {
             for u in row {
                 match u {
                     0 => write!(f, "    ")?,
-                    _ => write!(f, "{:4}", u)?,
+                    _ => write!(f, "{:^4}", u)?,
                 }
             }
             write!(f, "\n")?;
