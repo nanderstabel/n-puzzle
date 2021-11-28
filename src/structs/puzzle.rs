@@ -9,23 +9,21 @@ use std::{
     rc::Rc,
 };
 
-fn manhattan((cy, cx): (usize, usize), (ey, ex): (usize, usize)) -> u16 {
-    (if cy > ey { cy - ey } else { ey - cy } + if cx > ex { cx - ex } else { ex - cx }) as u16
-}
-
 pub struct Puzzle {
     pub time_complexity: u64,
     pub size_complexity: u64,
+    pub heuristic: fn((usize, usize), (usize, usize)) -> u16,
     pub data: HashMap<u8, Data>,
     pub closed: HashSet<Grid>,
     pub open: VecDeque<Node>,
 }
 
 impl Puzzle {
-    pub fn new() -> Self {
+    pub fn new(heuristic: fn((usize, usize), (usize, usize)) -> u16) -> Self {
         Puzzle {
             time_complexity: 1,
             size_complexity: 1,
+            heuristic,
             data: HashMap::new(),
             closed: HashSet::new(),
             open: VecDeque::new(),
@@ -84,7 +82,7 @@ impl Puzzle {
             cursor,
             self.data
                 .values()
-                .map(|d| manhattan(d.current, d.end))
+                .map(|d| (self.heuristic)(d.current, d.end))
                 .sum(),
             0,
             None,
@@ -101,7 +99,7 @@ impl Puzzle {
             self.open.push_back(Node::new(
                 new_grid,
                 new_cursor,
-                parent.h + manhattan(parent.cursor, end) - manhattan(new_cursor, end),
+                parent.h + (self.heuristic)(parent.cursor, end) - (self.heuristic)(new_cursor, end),
                 parent.g + 1,
                 Some(Rc::clone(&parent)),
             ));
@@ -123,7 +121,7 @@ impl Puzzle {
         if parent.cursor.1 + 1 < parent.grid.len() {
             self.add_child(&parent, (parent.cursor.0, parent.cursor.1 + 1));
         }
-        self.closed.insert(parent.grid.iter().cloned().collect());
+        self.closed.insert(parent.grid.clone());
     }
 
     pub fn solve(&mut self) {
