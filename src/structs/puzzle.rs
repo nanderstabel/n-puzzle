@@ -5,6 +5,7 @@ use n_puzzle::*;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     error::Error,
+    fmt,
     rc::Rc,
 };
 
@@ -126,5 +127,24 @@ impl Puzzle {
                 // .sort_by(|a, b| (a.h + a.g).cmp(&(b.h + b.g)));
                 .sort_by(|a, b| (a.h).cmp(&(b.h)));
         }
+    }
+}
+
+impl fmt::Display for Puzzle {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        struct Traverse<'a> {
+            r: &'a dyn Fn(&Traverse, &Node),
+        }
+        let traverse = Traverse {
+            r: &|traverse, node| {
+                if let Some(parent) = &node.parent {
+                    (traverse.r)(&traverse, parent);
+                }
+                println!("{:?}", node);
+            },
+        };
+        let node = &self.open[0];
+        (traverse.r)(&traverse, node);
+        Ok(())
     }
 }
