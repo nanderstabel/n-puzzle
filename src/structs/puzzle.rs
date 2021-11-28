@@ -84,48 +84,43 @@ impl Puzzle {
         Ok(())
     }
 
-    fn add_child(&mut self, parent: &Rc<Node>, cursor: (usize, usize), new_cursor: (usize, usize)) {
-        let new_grid: Grid = parent
-            .grid
-            .iter()
-            .cloned()
-            .collect::<Grid>()
-            .swap(cursor, new_cursor);
+    fn add_child(&mut self, parent: &Rc<Node>, new_cursor: (usize, usize)) {
+        let new_grid = parent.grid.clone().swap(parent.cursor, new_cursor);
+
         if self.closed.contains(&new_grid) == false {
-            let target = new_grid[cursor.0][cursor.1];
-            let meta = &(*self.data.get_mut(&target).unwrap());
-            let new_h = manhattan(cursor, meta.end) as i16 - manhattan(new_cursor, meta.end) as i16;
+            let target = new_grid[parent.cursor.0][parent.cursor.1];
+            let end = (*self.data.get_mut(&target).unwrap()).end;
             self.open.push_back(Node::new(
                 new_grid,
                 new_cursor,
-                (parent.h as i16 + new_h) as u16,
+                parent.h + manhattan(parent.cursor, end) - manhattan(new_cursor, end),
                 parent.g + 1,
                 Some(Rc::clone(&parent)),
             ));
         }
     }
 
-    fn add_children(&mut self) {
-        let parent = Rc::new(self.open.pop_front().unwrap());
-        let cursor = parent.cursor;
-        self.closed.insert(parent.grid.iter().cloned().collect());
+    fn add_children(&mut self, parent: Rc<Node>) {
         if parent.cursor.0 != 0 {
-            self.add_child(&parent, cursor, (cursor.0 - 1, cursor.1));
+            self.add_child(&parent, (parent.cursor.0 - 1, parent.cursor.1));
         }
         if parent.cursor.0 + 1 < parent.grid.len() {
-            self.add_child(&parent, cursor, (cursor.0 + 1, cursor.1));
+            self.add_child(&parent, (parent.cursor.0 + 1, parent.cursor.1));
         }
         if parent.cursor.1 != 0 {
-            self.add_child(&parent, cursor, (cursor.0, cursor.1 - 1));
+            self.add_child(&parent, (parent.cursor.0, parent.cursor.1 - 1));
         }
         if parent.cursor.1 + 1 < parent.grid.len() {
-            self.add_child(&parent, cursor, (cursor.0, cursor.1 + 1));
+            self.add_child(&parent, (parent.cursor.0, parent.cursor.1 + 1));
         }
+        self.closed.insert(parent.grid.iter().cloned().collect());
     }
 
     pub fn solve(&mut self) {
         while self.open[0].h != 0 {
-            self.add_children();
+            let parent = Rc::new(self.open.pop_front().unwrap());
+
+            self.add_children(parent);
             self.open
                 .make_contiguous()
                 // .sort_by(|a, b| (a.h + a.g).cmp(&(b.h + b.g)));
