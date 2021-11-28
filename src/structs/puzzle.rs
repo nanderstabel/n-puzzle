@@ -3,7 +3,6 @@ use super::node::*;
 use crate::input::*;
 use n_puzzle::*;
 use std::{
-    cmp::min,
     collections::{HashMap, HashSet, VecDeque},
     error::Error,
     fmt,
@@ -15,7 +14,6 @@ pub struct Puzzle {
     pub size_complexity: u64,
     pub heuristic: fn((usize, usize), (usize, usize)) -> u16,
     pub data: HashMap<u8, Data>,
-    pub fringe_db: HashMap<usize, Vec<u8>>,
     pub closed: HashSet<Grid>,
     pub open: VecDeque<Node>,
 }
@@ -27,7 +25,6 @@ impl Puzzle {
             size_complexity: 1,
             heuristic,
             data: HashMap::new(),
-            fringe_db: HashMap::new(),
             closed: HashSet::new(),
             open: VecDeque::new(),
         }
@@ -79,13 +76,6 @@ impl Puzzle {
                     cursor = (y, x);
                 }
             }
-        }
-        for i in 1..(size * size) {
-            let (x, y) = (*self.data.get_mut(&i).unwrap()).end;
-            if !self.fringe_db.contains_key(min(&x, &y)) {
-                self.fringe_db.insert(min(x, y), Vec::new());
-            }
-            (*self.fringe_db.get_mut(min(&x, &y)).unwrap()).push(i);
         }
         self.open.push_front(Node::new(
             grid,
